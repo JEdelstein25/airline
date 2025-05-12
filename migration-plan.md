@@ -190,150 +190,88 @@
    - Message broker (RabbitMQ/Kafka) for event-driven communication
    - Implement event sourcing for critical business events
 
-## Migration Strategy: Strangler Pattern
+## Simplified Migration Strategy
 
-### Phase 1: Infrastructure Setup (1-2 months)
+### Phase 1: Foundation (1 month)
 
-1. **Setup Modern DevOps Infrastructure**
-   - Containerize the existing monolith
-   - Set up Kubernetes or container orchestration
-   - Implement CI/CD pipelines
-   - Set up centralized logging and monitoring
+1. **Simple API Gateway**
+   - Create a basic API gateway to route requests between monolith and new services
+   - Start with standard HTTP routing without complex orchestration
 
-2. **API Gateway Implementation**
-   - Implement API Gateway routing to monolith
-   - Set up authentication and common middleware
+2. **Shared Library Extraction**
+   - Extract common code into shared packages (authentication, validation, etc.)
+   - Create simple database access patterns for the shared schema
 
-3. **Shared Libraries**
-   - Extract common utilities into shared packages
-   - Implement messaging infrastructure
+### Phase 2: Initial Services (2 months)
 
-### Phase 2: Initial Service Extraction (3-4 months)
+1. **Extract Reference & Fleet Services**
+   - Move Airport, Airline, and Fleet (aircraft) services first
+   - These have fewer dependencies and are good candidates for early extraction
+   - Implement with shared database access pattern
 
-1. **Extract Reference Data Services First**
-   - Move Airport Service (low complexity, mostly read-only)
-   - Move Airline Service (limited dependencies)
+### Phase 3: Core Services (2-3 months)
 
-2. **Extract Fleet Service**
-   - Move aircraft and fleet management
-   - Redirect API Gateway to the new service
-
-3. **Implement Data Synchronization**
-   - Set up two-way sync between monolith and new services during transition
-
-### Phase 3: Core Services Migration (4-6 months)
+**Note: These services can be migrated concurrently by separate teams**
 
 1. **Extract Schedule & Flight Services**
-   - Move schedule management logic
-   - Move flight operations
-   - Implement event-driven communication
+   - Move schedule and flight management logic to dedicated services
+   - Can be developed in parallel by separate teams
 
 2. **Extract Booking Service**
    - Move passenger and booking management
-   - Implement seat assignment logic
+   - Can be developed concurrently with schedule/flight services
 
-3. **Implement New Notification Service**
-   - Add new capabilities for customer notifications
+3. **Add Notification Functionality**
+   - Implement as part of booking service initially for simplicity
+   - Later extract to dedicated service if volume justifies it
 
-### Phase 4: Monolith Decommissioning & Optimization (2-3 months)
+### Phase 4: Completion (1 month)
 
-1. **Remove Redundant Code from Monolith**
-   - Gradually reduce monolith functionality
-   - Validate all traffic routed correctly through microservices
+1. **Decommission Monolith**
+   - Confirm all functionality migrated correctly
+   - Remove redundant monolith code and route all traffic through services
+   - Add service-specific scaling as needed
 
-2. **Performance Tuning & Scaling**
-   - Optimize individual services based on load patterns
-   - Implement service-specific scaling
+### Concurrent Development Approach
 
-3. **Decommission Monolith**
-   - Remove remaining monolithic components
+- Use feature branches for each service migration
+- Each team can work independently on their service extraction
+- Core services (flight, schedule, booking) can be developed in parallel
+- Use the shared database schema to simplify initial development
+- Regular integration tests to ensure services work together correctly
 
-## Testing Strategy
+## Essential Testing & Operations
 
-1. **Service-Level Testing**
-   - Unit tests for each service
-   - Integration tests for service-database interaction
+### Testing Approach
+- Unit and integration tests for each service
+- API contract testing to ensure service compatibility
+- End-to-end testing for critical business flows (booking, scheduling)
 
-2. **System Integration Testing**
-   - API contract testing between services
-   - End-to-end testing for critical flows
+### Simple Monitoring
+- Basic logging across services with consistent format
+- Health checks and basic metrics for each service
+- Centralized error tracking (Sentry or similar)
 
-3. **Performance Testing**
-   - Load testing for each microservice
-   - Benchmark performance against monolith
+### Security Essentials
+- Service-to-service authentication with API keys or JWT
+- Secure credentials storage
+- Input validation and sanitization
 
-## Monitoring & Observability
-
-1. **Distributed Tracing**
-   - Implement OpenTelemetry for request tracing
-   - Capture and analyze cross-service transactions
-
-2. **Centralized Logging**
-   - Implement structured logging
-   - Set up log aggregation (ELK/Graylog)
-
-3. **Metrics & Dashboards**
-   - Service-level metrics (response times, throughput)
-   - Business metrics (bookings, flight status)
-
-## Security Considerations
-
-1. **Service-to-Service Authentication**
-   - Implement JWT or mutual TLS authentication
-   - Strict access controls between services
-
-2. **Secrets Management**
-   - Use Vault or Kubernetes secrets for credentials
-   - Rotate credentials automatically
-
-3. **Network Security**
-   - Implement service meshes for secure communication
-   - Define network policies for service isolation
-
-## Scaling Strategy
-
-1. **Horizontal Scaling for Stateless Services**
-   - Implement auto-scaling for services with variable load
-   - Example: Scale Booking Service during high booking periods
-
-2. **Vertical Scaling for Database Services**
-   - Optimize database resources based on workload
-   - Implement read replicas for high-traffic services
-
-## Risk Mitigation
-
-1. **Fallback Mechanisms**
-   - Implement circuit breakers for service calls
-   - Define fallback behaviors for service failures
-
-2. **Incremental Deployment**
-   - Use feature flags for gradual rollout
-   - Implement canary deployments for new services
-
-3. **Rollback Plans**
-   - Maintain ability to route traffic back to monolith
-   - Document rollback procedures for each phase
+### Scaling Approach
+- Container-based scaling for high-traffic services
+- Shared database with read replicas for performance
+- Focus scaling efforts on booking/search during peak periods
 
 ## Timeline & Resources
 
-- **Total Timeline**: 10-15 months
-- **Team Structure**:
-  - DevOps Engineers (2-3)
-  - Backend Developers (4-6)
-  - QA Engineers (2)
-  - Project Manager (1)
-  - Database Specialists (1-2)
+- **Simplified Timeline**: 4-6 months total
+- **Team Requirements**:
+  - Backend Developers (3-4)
+  - QA Engineer (1)
+  - Project Manager (part-time)
 
 ## Success Metrics
 
-1. **Performance Improvements**
-   - Response time improvements
-   - Throughput increases for key operations
-
-2. **Operational Efficiency**
-   - Deployment frequency
-   - Time to recover from failures
-
-3. **Business Metrics**
-   - System availability improvements
-   - Ability to handle increased booking volumes
+- **Performance**: Response time & throughput improvements
+- **Operational**: Ability to update/deploy services independently
+- **Business**: Improved availability & capacity for peak periods
