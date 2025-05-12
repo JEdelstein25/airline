@@ -4,7 +4,23 @@ import createClient, { type Middleware } from 'openapi-fetch'
 import { schema } from './airline.typebox'
 
 export const apiClient = createClient<paths>({
-	baseUrl: `http://localhost:${env.PUBLIC_API_PORT ?? '8080'}`, // TODO(sqs)
+	baseUrl: (env.API_GATEWAY_URL || `http://localhost:${env.PUBLIC_API_PORT ?? '8000'}`),
+	path: env.PUBLIC_API_BASE_URL || '/api',
+
+	// In server-side rendering context, we need the full URL to the API from the Docker container
+	initFetch: (url, init) => {
+		// During SSR, change the host to the API gateway service name for container communication
+		if (typeof window === 'undefined') {
+			// Use Docker service name instead of localhost for SSR requests
+			url = url.replace(/http:\/\/localhost:8000|http:\/\/127.0.0.1:8000/, 'http://api-gateway:8000');
+			console.log('SSR request URL:', url);
+		} else {
+			// For client-side requests from the browser, ensure we use localhost
+			url = url.replace('http://api-gateway:8000', 'http://localhost:8000');
+			console.log('Client request URL:', url);
+		}
+		return fetch(url, init);
+	},
 })
 
 const detectResponseError: Middleware = {

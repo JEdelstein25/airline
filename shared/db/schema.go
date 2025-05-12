@@ -1,95 +1,78 @@
 package db
 
-// Schema definitions shared across services
-// This contains the common database schema that will be used by all microservices
-// during the initial migration phase.
+// These types represent the core database schema shared across services
 
-// Note: In a later phase, each service will maintain its own schema
-
-// Common types and structures used across services
-type AirlineID int64
-type AirportID int64
-type AircraftID int64
-type FleetID int64
-type ScheduleID int64
-type FlightID int64
-type PassengerID int64
-type ItineraryID int64
-
-// These structures mirror the database schema
+// Airline represents an airline entity
 type Airline struct {
-	ID       AirlineID `json:"id"`
-	IATACode string    `json:"iata_code"`
-	Name     string    `json:"name"`
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Code    string `json:"code"`
+	Country string `json:"country"`
 }
 
-type Airport struct {
-	ID       AirportID `json:"id"`
-	IATACode string    `json:"iata_code"`
-	OADBID   *int64    `json:"oadb_id,omitempty"`
-}
-
+// Aircraft represents an aircraft entity
 type Aircraft struct {
-	ID           AircraftID `json:"id"`
-	Registration string     `json:"registration"`
-	AircraftType string     `json:"aircraft_type"`
-	AirlineID    AirlineID  `json:"airline_id"`
+	ID          int    `json:"id"`
+	TypeID      int    `json:"type_id"`
+	TailNumber  string `json:"tail_number"`
+	AirlineID   int    `json:"airline_id"`
+	Capacity    int    `json:"capacity"`
+	Manufactured string `json:"manufactured"`
 }
 
-type Fleet struct {
-	ID          FleetID   `json:"id"`
-	AirlineID   AirlineID `json:"airline_id"`
-	Code        string    `json:"code"`
-	Description string    `json:"description"`
+// Airport represents an airport entity
+type Airport struct {
+	ID        int     `json:"id"`
+	Code      string  `json:"code"`
+	Name      string  `json:"name"`
+	City      string  `json:"city"`
+	Country   string  `json:"country"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Timezone  string  `json:"timezone"`
 }
 
-type Schedule struct {
-	ID                  ScheduleID `json:"id"`
-	AirlineID           AirlineID  `json:"airline_id"`
-	Number              string     `json:"number"`
-	OriginAirportID     AirportID  `json:"origin_airport_id"`
-	DestinationAirportID AirportID  `json:"destination_airport_id"`
-	FleetID             FleetID    `json:"fleet_id"`
-	StartLocalDate      string     `json:"start_localdate"`
-	EndLocalDate        string     `json:"end_localdate"`
-	DaysOfWeek          string     `json:"days_of_week"`
-	DepartureLocalTime  string     `json:"departure_localtime"`
-	DurationSec         int64      `json:"duration_sec"`
-	Published           bool       `json:"published"`
-}
-
+// Flight represents a flight entity
 type Flight struct {
-	ID                      FlightID   `json:"id"`
-	SourceScheduleID        *ScheduleID `json:"source_schedule_id,omitempty"`
-	SourceScheduleInstanceLocalDate *string    `json:"source_schedule_instance_localdate,omitempty"`
-	AirlineID               AirlineID  `json:"airline_id"`
-	Number                  string     `json:"number"`
-	OriginAirportID         AirportID  `json:"origin_airport_id"`
-	DestinationAirportID     AirportID  `json:"destination_airport_id"`
-	FleetID                 FleetID    `json:"fleet_id"`
-	AircraftID              *AircraftID `json:"aircraft_id,omitempty"`
-	DepartureDateTime       string     `json:"departure_datetime"`
-	ArrivalDateTime         string     `json:"arrival_datetime"`
-	DepartureDateTimeUTC    string     `json:"departure_datetime_utc"`
-	ArrivalDateTimeUTC      string     `json:"arrival_datetime_utc"`
-	Notes                   string     `json:"notes"`
-	Published               bool       `json:"published"`
+	ID             int    `json:"id"`
+	FlightNumber   string `json:"flight_number"`
+	AirlineID      int    `json:"airline_id"`
+	DepartureTime  string `json:"departure_time"`
+	ArrivalTime    string `json:"arrival_time"`
+	OriginID       int    `json:"origin_id"`
+	DestinationID  int    `json:"destination_id"`
+	AircraftID     int    `json:"aircraft_id"`
+	Status         string `json:"status"`
 }
 
+// Schedule represents a flight schedule entity
+type Schedule struct {
+	ID           int    `json:"id"`
+	FlightNumber string `json:"flight_number"`
+	AirlineID    int    `json:"airline_id"`
+	OriginID     int    `json:"origin_id"`
+	DestinationID int   `json:"destination_id"`
+	Departure    string `json:"departure"`
+	Arrival      string `json:"arrival"`
+	DaysOfWeek   string `json:"days_of_week"`
+	StartDate    string `json:"start_date"`
+	EndDate      string `json:"end_date"`
+}
+
+// Passenger represents a passenger entity
 type Passenger struct {
-	ID   PassengerID `json:"id"`
-	Name string      `json:"name"`
+	ID        int    `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
 }
 
-type Itinerary struct {
-	ID      ItineraryID `json:"id"`
-	RecordID string      `json:"record_id"`
-}
-
+// SeatAssignment represents a seat assignment entity
 type SeatAssignment struct {
-	ID          int64       `json:"id"`
-	ItineraryID ItineraryID `json:"itinerary_id"`
-	PassengerID PassengerID `json:"passenger_id"`
-	FlightID    FlightID    `json:"flight_id"`
-	Seat        string      `json:"seat"`
+	ID          int    `json:"id"`
+	FlightID    int    `json:"flight_id"`
+	PassengerID int    `json:"passenger_id"`
+	SeatNumber  string `json:"seat_number"`
+	Class       string `json:"class"`
 }

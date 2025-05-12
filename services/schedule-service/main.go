@@ -12,7 +12,7 @@ import (
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8002"
+		port = "8004"
 	}
 
 	r := mux.NewRouter()
@@ -23,12 +23,12 @@ func main() {
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	}).Methods("GET")
 
-	// Basic airport endpoints
-	r.HandleFunc("/api/airports", func(w http.ResponseWriter, r *http.Request) {
+	// Basic schedule endpoints
+	r.HandleFunc("/api/schedules", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`[{"code":"SFO","name":"San Francisco International"}]`))
+		w.Write([]byte(`[{"id":1,"flight_number":"AB123","departure":"2025-05-15T10:00:00Z"}]`))
 	}).Methods("GET")
 
-	log.Printf("Airport Service starting on port %s...", port)
+	log.Printf("Schedule Service starting on port %s...", port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }

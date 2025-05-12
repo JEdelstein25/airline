@@ -1,0 +1,158 @@
+version: '3.7'
+
+services:
+  # Database service
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: airline_user
+      POSTGRES_PASSWORD: airline_password
+      POSTGRES_DB: airline_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airline_user -d airline_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    volumes:
+      - ./api-gateway:/app
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      AIRLINE_SERVICE_URL: http://airline-service:8001
+      AIRPORT_SERVICE_URL: http://airport-service:8002
+      FLEET_SERVICE_URL: http://fleet-service:8003
+      SCHEDULE_SERVICE_URL: http://schedule-service:8004
+      BOOKING_SERVICE_URL: http://booking-service:8005
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: airline_user
+      DB_PASSWORD: airline_password
+      DB_NAME: airline_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Airline Service
+  airline-service:
+    build:
+      context: ./services/airline-service
+      dockerfile: Dockerfile.basic
+    ports:
+      - "8001:8001"
+    environment:
+      PORT: 8001
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: airline_user
+      DB_PASSWORD: airline_password
+      DB_NAME: airline_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Airport Service
+  airport-service:
+    build:
+      context: ./services/airport-service
+      dockerfile: Dockerfile.basic
+    ports:
+      - "8002:8002"
+    environment:
+      PORT: 8002
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: airline_user
+      DB_PASSWORD: airline_password
+      DB_NAME: airline_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Fleet Service
+  fleet-service:
+    build:
+      context: ./services/fleet-service
+      dockerfile: Dockerfile.simple
+    ports:
+      - "8003:8003"
+    environment:
+      PORT: 8003
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: airline_user
+      DB_PASSWORD: airline_password
+      DB_NAME: airline_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Schedule Service
+  schedule-service:
+    build:
+      context: ./services/schedule-service
+      dockerfile: Dockerfile.basic
+    ports:
+      - "8004:8004"
+    environment:
+      PORT: 8004
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: airline_user
+      DB_PASSWORD: airline_password
+      DB_NAME: airline_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Booking Service
+  booking-service:
+    build:
+      context: ./services/booking-service
+      dockerfile: Dockerfile.simple
+    ports:
+      - "8005:8005"
+    environment:
+      PORT: 8005
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: airline_user
+      DB_PASSWORD: airline_password
+      DB_NAME: airline_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Frontend (web app)
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    # Standard Docker networking
+    ports:
+      - "5179:5179"
+    environment:
+      NODE_ENV: development
+      # When using host network, we need to use localhost
+      API_GATEWAY_URL: "http://localhost:8000"
+      PUBLIC_API_PORT: 8000
+      PUBLIC_API_BASE_URL: "/api"
+      PUBLIC_API_GATEWAY: "http://localhost:8000"
+    depends_on:
+      - api-gateway
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:

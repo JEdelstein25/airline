@@ -197,10 +197,14 @@
 1. **Simple API Gateway**
    - Create a basic API gateway to route requests between monolith and new services
    - Start with standard HTTP routing without complex orchestration
+   - Set up request logging for debugging
+   - Add simple health check monitoring
 
 2. **Shared Library Extraction**
    - Extract common code into shared packages (authentication, validation, etc.)
    - Create simple database access patterns for the shared schema
+   - Finalize shared database schema and migrations
+   - Create utility packages for error handling and validation
 
 ### Phase 2: Initial Services (2 months)
 
@@ -208,10 +212,26 @@
    - Move Airport, Airline, and Fleet (aircraft) services first
    - These have fewer dependencies and are good candidates for early extraction
    - Implement with shared database access pattern
+   - Configure API Gateway to route to these new services
+
+2. **Implement Shared Database Pattern**
+   - Set up consistent data access across services
+   - Implement read replicas for high-traffic services
+   - Ensure data consistency between services
+
+3. **Testing Strategy**
+   - Create integration tests for each extracted service
+   - Verify identical behavior between monolith and microservices
+   - Validate API contract compliance
 
 ### Phase 3: Core Services (2-3 months)
 
 **Note: These services can be migrated concurrently by separate teams**
+
+0. **Preparation for Core Services**
+   - Create technical design documents for each core service
+   - Identify team assignments for parallel development
+   - Plan integration points between concurrent services
 
 1. **Extract Schedule & Flight Services**
    - Move schedule and flight management logic to dedicated services
@@ -269,6 +289,30 @@
   - Backend Developers (3-4)
   - QA Engineer (1)
   - Project Manager (part-time)
+
+## Remaining Migration Tasks (Local Development Focus)
+
+1. **Basic Local Environment Setup:**
+   - Complete Docker containerization for local development only
+   - Set up docker-compose for running multiple services locally
+
+2. **Essential Shared Components:**
+   - Implement simple authentication library (`shared/auth/`)
+   - Create basic service-to-service communication patterns
+   - Add minimal logging for debugging purposes
+
+3. **API Gateway Basics:**
+   - Implement simple authentication for local testing
+   - Complete routing between all services
+   - Add basic API documentation for developers
+
+4. **Implement Simple Notification Capability:**
+   - Add basic notification functionality to booking service
+   - Implement console logging of notifications for development
+
+5. **Data Consistency:**
+   - Create simple data validation tools
+   - Implement basic database versioning
 
 ## Success Metrics
 
